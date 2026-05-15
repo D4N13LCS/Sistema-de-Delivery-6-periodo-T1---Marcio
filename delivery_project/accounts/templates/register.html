@@ -1,0 +1,74 @@
+{% extends 'core/base.html' %}
+
+{% block content %}
+
+<div class="row justify-content-center">
+
+    <div class="col-lg-5">
+
+        <div class="card card-custom p-5">
+
+            <h2 class="mb-4 text-center">
+                Criar Conta
+            </h2>
+
+            <form method="POST">
+
+                {% csrf_token %}
+
+                <input
+                    type="text"
+                    name="username"
+                    class="form-control mb-3"
+                    placeholder="Usuário">
+
+                <input
+                    type="password"
+                    name="password"
+                    class="form-control mb-4"
+                    placeholder="Senha">
+
+                <div class="alert alert-info mt-3">
+
+                    <strong>
+                        Requisitos da senha:
+                    </strong>
+
+                    <ul class="mb-0 mt-2">
+
+                        <li>
+                            Pelo menos 8 caracteres
+                        </li>
+
+                        <li>
+                            Pelo menos uma letra maiúscula
+                        </li>
+
+                        <li>
+                            Pelo menos uma letra minúscula
+                        </li>
+
+                        <li>
+                            Pelo menos um caractere especial
+                        </li>
+
+                    </ul>
+
+                </div>
+                
+                <button
+                    class="btn btn-dark w-100">
+
+                    Criar Conta
+
+                </button>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}
