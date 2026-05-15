@@ -391,18 +391,6 @@ Lucas
 
 ---
 
-# 📌 Melhorias Futuras
-
-* Upload real de imagens
-* Integração com gateway de pagamento
-* Painel administrativo customizado
-* Cupons de desconto
-* Sistema de avaliações
-* WebSockets para status do pedido
-* Dockerização
-* Deploy em cloud
-
----
 
 # 👨‍🏫 Objetivo Acadêmico
 
