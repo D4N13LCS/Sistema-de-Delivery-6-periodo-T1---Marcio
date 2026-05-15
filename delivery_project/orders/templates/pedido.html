@@ -1,0 +1,352 @@
+{% extends 'core/base.html' %}
+
+{% block content %}
+
+<div class="card card-custom p-5">
+
+    <h2 class="mb-4">
+        Novo Pedido
+    </h2>
+
+    {% if erro %}
+        <div class="alert alert-danger">
+            {{ erro }}
+        </div>
+    {% endif %}
+
+    <form method="POST">
+
+        {% csrf_token %}
+        
+        <div class="alert alert-dark mb-4">
+
+            Pedido sendo realizado por:
+
+            <strong>
+
+                {{ user.username }}
+
+            </strong>
+
+        </div>
+
+        <label>Produto</label>
+
+        <select
+            name="produto"
+            class="form-select mb-3">
+
+            {% for produto in produtos %}
+
+            <option value="{{ produto.id }}">
+
+                {{ produto.nome }}
+                - R$ {{ produto.preco }}
+
+            </option>
+
+            {% endfor %}
+
+        </select>
+
+        <h5 class="mt-4">
+            Adicionais
+        </h5>
+
+        <div class="form-check">
+
+            <input
+                type="checkbox"
+                name="queijo"
+                class="form-check-input">
+
+            <label class="form-check-label">
+
+                Queijo (+ R$5)
+
+            </label>
+
+        </div>
+
+        <div class="form-check">
+
+            <input
+                type="checkbox"
+                name="bacon"
+                class="form-check-input">
+
+            <label class="form-check-label">
+
+                Bacon (+ R$7)
+
+            </label>
+
+        </div>
+
+        <div class="form-check mb-4">
+
+            <input
+                type="checkbox"
+                name="catupiry"
+                class="form-check-input">
+
+            <label class="form-check-label">
+
+                Catupiry (+ R$6)
+
+            </label>
+
+        </div>
+
+        <label>Entrega</label>
+
+        <select
+            name="entrega"
+            class="form-select mb-3">
+
+            <option value="normal">
+                Normal (+ R$5)
+            </option>
+
+            <option value="expressa">
+                Expressa (+ R$15)
+            </option>
+
+        </select>
+
+        <label>Pagamento</label>
+
+        <select
+            name="pagamento"
+            class="form-select mb-4">
+
+            <option value="pix">
+                PIX (10% OFF)
+            </option>
+
+            <option value="cartao">
+                Cartão
+            </option>
+
+        </select>
+
+        <div
+            id="cartao-area"
+            style="display:none;">
+
+            <div class="alert alert-info">
+
+                Esta compra utilizará o cartão cadastrado.
+
+            </div>
+
+            {% if not perfil.cartao_cadastrado %}
+
+                <div class="alert alert-danger">
+
+                    Você não possui cartão cadastrado.
+
+                </div>
+
+            {% endif %}
+
+        </div>
+
+        <label>
+            Endereço de entrega
+        </label>
+
+        <input
+            type="text"
+            name="endereco"
+            class="form-control mb-4"
+            value="{{ perfil.endereco|default:'' }}"
+            placeholder="Digite o endereço">
+
+        <div class="card mt-4 p-4 bg-light border-0">
+
+            <h4 class="mb-3">
+                Resumo do Pedido
+            </h4>
+
+            <p>
+                Subtotal:
+                <strong id="subtotal">
+                    R$ 0
+                </strong>
+            </p>
+
+            <p>
+                Taxa de entrega:
+                <strong id="taxa">
+                    R$ 5
+                </strong>
+            </p>
+
+            <p>
+                Desconto:
+                <strong id="desconto">
+                    R$ 0
+                </strong>
+            </p>
+
+            <hr>
+
+            <h4>
+
+                Total:
+                <span class="text-success" id="total">
+
+                    R$ 0
+
+                </span>
+
+            </h4>
+
+        </div>
+        
+        <button class="btn btn-dark w-100">
+
+            Finalizar Pedido
+
+        </button>
+
+    </form>
+
+</div>
+<script>
+
+    const pagamento = document.querySelector(
+        'select[name="pagamento"]'
+    )
+
+    const cartaoArea = document.getElementById(
+        'cartao-area'
+    )
+
+    function verificarPagamento(){
+
+        if(pagamento.value === 'cartao'){
+
+            cartaoArea.style.display = 'block'
+
+        }else{
+
+            cartaoArea.style.display = 'none'
+
+        }
+
+    }
+
+    pagamento.addEventListener(
+        'change',
+        verificarPagamento
+    )
+
+    verificarPagamento()
+
+    
+
+</script>
+<script>
+
+    const produtoSelect = document.querySelector(
+        'select[name="produto"]'
+    )
+
+    const entregaSelect = document.querySelector(
+        'select[name="entrega"]'
+    )
+
+    const pagamentoSelect = document.querySelector(
+        'select[name="pagamento"]'
+    )
+
+    const queijo = document.querySelector(
+        'input[name="queijo"]'
+    )
+
+    const bacon = document.querySelector(
+        'input[name="bacon"]'
+    )
+
+    const catupiry = document.querySelector(
+        'input[name="catupiry"]'
+    )
+
+    function calcularPedido(){
+
+        const precoProduto = parseFloat(
+            produtoSelect.options[
+                produtoSelect.selectedIndex
+            ].text.match(/R\$ (\d+)/)[1]
+        )
+
+        let subtotal = precoProduto
+
+        if(queijo.checked){
+            subtotal += 5
+        }
+
+        if(bacon.checked){
+            subtotal += 7
+        }
+
+        if(catupiry.checked){
+            subtotal += 6
+        }
+
+        let taxa = 0
+
+        if(entregaSelect.value === 'expressa'){
+
+            taxa = 15
+
+        }else{
+
+            taxa = subtotal > 50 ? 0 : 5
+
+        }
+
+        let desconto = 0
+
+        if(pagamentoSelect.value === 'pix'){
+            desconto = subtotal * 0.1
+        }
+
+        let total = subtotal + taxa - desconto
+
+        document.getElementById(
+            'subtotal'
+        ).innerText = `R$ ${subtotal.toFixed(2)}`
+
+        document.getElementById(
+            'taxa'
+        ).innerText = `R$ ${taxa.toFixed(2)}`
+
+        document.getElementById(
+            'desconto'
+        ).innerText = `R$ ${desconto.toFixed(2)}`
+
+        document.getElementById(
+            'total'
+        ).innerText = `R$ ${total.toFixed(2)}`
+
+    }
+
+    document.querySelectorAll(
+        'select, input[type="checkbox"]'
+    ).forEach(el => {
+
+        el.addEventListener(
+            'change',
+            calcularPedido
+        )
+
+    })
+
+    calcularPedido()
+
+</script>
+
+{% endblock %}

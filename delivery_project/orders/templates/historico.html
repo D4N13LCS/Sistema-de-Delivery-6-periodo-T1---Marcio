@@ -1,0 +1,64 @@
+{% extends 'core/base.html' %}
+
+{% block content %}
+
+<div class="card card-custom p-5">
+
+    <h1 class="mb-4">
+
+        Histórico de Pedidos
+
+    </h1>
+
+    <hr>
+
+    {% for pedido in pedidos %}
+
+        <div class="border-bottom pb-4 mb-4">
+
+            <h4>
+
+                {{ pedido.produto.nome }}
+
+            </h4>
+
+            <p>
+
+                Adicionais:
+                {{ pedido.adicionais }}
+
+            </p>
+
+            <p>
+
+                Pagamento:
+                {{ pedido.pagamento }}
+
+            </p>
+
+            <p>
+
+                Total:
+                R$ {{ pedido.valor_total }}
+
+            </p>
+
+            <small class="text-muted">
+
+                {{ pedido.criado_em|date:"d/m/Y H:i" }}
+
+            </small>
+
+        </div>
+
+    {% empty %}
+
+        <p>
+            Nenhum pedido encontrado.
+        </p>
+
+    {% endfor %}
+
+</div>
+
+{% endblock %}

@@ -1,0 +1,83 @@
+{% extends 'core/base.html' %}
+
+{% block content %}
+
+<div class="success-box">
+
+    <h1>
+        Pedido Finalizado ✅
+    </h1>
+
+    <hr>
+
+    <p>
+        <strong>Cliente:</strong>
+        {{ pedido.cliente.nome }}
+    </p>
+
+    <p>
+        <strong>Produto:</strong>
+        {{ pedido.produto.nome }}
+    </p>
+
+    <p>
+        <strong>Adicionais:</strong>
+        {{ pedido.adicionais }}
+    </p>
+
+    <p>
+        <strong>Entrega:</strong>
+        {{ pedido.entrega }}
+    </p>
+
+    <p>
+        <strong>Subtotal:</strong>
+        R$ {{ pedido.subtotal }}
+    </p>
+
+    <p>
+        <strong>Taxa:</strong>
+        R$ {{ pedido.taxa_entrega }}
+    </p>
+
+    <p class="text-success">
+
+        <strong>Desconto:</strong>
+
+        R$ {{ pedido.desconto }}
+
+    </p>
+
+    <h3>
+
+        Total:
+        R$ {{ pedido.valor_total }}
+
+    </h3>
+
+    <div class="alert alert-success mt-4">
+
+        {{ resultado.mensagem }}
+
+    </div>
+    <div class="d-flex gap-3 mt-4">
+
+    <a href="/"
+       class="btn btn-dark">
+
+       Voltar para Home
+
+    </a>
+
+    <a href="/conta/"
+       class="btn btn-outline-dark">
+
+       Minha Conta
+
+    </a>
+
+</div>
+
+</div>
+
+{% endblock %}
