@@ -5,24 +5,7 @@ from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib import messages
-import re
-
-
-def senha_valida(password):
-
-    if len(password) < 8:
-        return False
-
-    if not re.search(r'[A-Z]', password):
-        return False
-
-    if not re.search(r'[a-z]', password):
-        return False
-
-    if not re.search(r'[\W_]', password):
-        return False
-
-    return True
+from .services.password_validator import senha_valida
 
 class RegisterView(View):
 
@@ -137,22 +120,48 @@ class ContaView(LoginRequiredMixin, View):
             'perfil': perfil
         })
 
+    def _atualizar_endereco(self, perfil, request):
+
+        perfil.endereco = request.POST['endereco']
+
+    def _atualizar_cartao(self, perfil, request):
+
+        perfil.numero_cartao = request.POST[
+            'numero_cartao'
+        ]
+
+        perfil.nome_cartao = request.POST[
+            'nome_cartao'
+        ]
+
+        perfil.validade_cartao = request.POST[
+            'validade_cartao'
+        ]
+
+    def _atualizar_status_cartao(self, perfil):
+
+        perfil.cartao_cadastrado = bool(
+            perfil.numero_cartao
+        )
+
     def post(self, request):
 
         perfil = Perfil.objects.get(
             usuario=request.user
         )
 
-        perfil.endereco = request.POST['endereco']
+        self._atualizar_endereco(
+            perfil,
+            request
+        )
 
-        perfil.numero_cartao = request.POST['numero_cartao']
+        self._atualizar_cartao(
+            perfil,
+            request
+        )
 
-        perfil.nome_cartao = request.POST['nome_cartao']
-
-        perfil.validade_cartao = request.POST['validade_cartao']
-
-        perfil.cartao_cadastrado = (
-            True if perfil.numero_cartao else False
+        self._atualizar_status_cartao(
+            perfil
         )
 
         perfil.save()
