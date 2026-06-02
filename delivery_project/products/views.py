@@ -1,16 +1,15 @@
-from django.shortcuts import render
-from django.views.generic import TemplateView
+from django.views.generic import ListView
 from products.models import Produto
 
-# Create your views here.
-class HomeView(TemplateView):
+
+class HomeView(ListView):
+
+    model = Produto
 
     template_name = 'home.html'
 
-    def get_context_data(self, **kwargs):
+    context_object_name = 'produtos'
 
-        context = super().get_context_data(**kwargs)
+    paginate_by = 6
 
-        context['produtos'] = Produto.objects.all()
-
-        return context
+    ordering = ['nome']
