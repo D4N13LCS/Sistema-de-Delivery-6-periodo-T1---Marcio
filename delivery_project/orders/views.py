@@ -31,20 +31,18 @@ class CriarPedidoView(LoginRequiredMixin, View):
             'perfil': perfil
         })
 
-    def post(self, request):
+    def _obter_perfil(self, request):
 
-        produtos = Produto.objects.all()
-
-        perfil, created = Perfil.objects.get_or_create(
+        perfil, _ = Perfil.objects.get_or_create(
             usuario=request.user,
             defaults={
                 'saldo': 200
             }
         )
 
-        produto = Produto.objects.get(
-            id=request.POST['produto']
-        )
+        return perfil
+    
+    def _montar_lanche(self, request, produto):
 
         lanche = Lanche(
             produto.nome,
@@ -54,56 +52,90 @@ class CriarPedidoView(LoginRequiredMixin, View):
         adicionais = []
 
         if 'queijo' in request.POST:
-
             lanche = ExtraQueijo(lanche)
-
-            adicionais.append("Queijo")
+            adicionais.append('Queijo')
 
         if 'bacon' in request.POST:
-
             lanche = Bacon(lanche)
-
-            adicionais.append("Bacon")
+            adicionais.append('Bacon')
 
         if 'catupiry' in request.POST:
-
             lanche = Catupiry(lanche)
+            adicionais.append('Catupiry')
 
-            adicionais.append("Catupiry")
+        return lanche, adicionais
 
-        tipo_entrega = request.POST['entrega']
-
-        pagamento = request.POST['pagamento']
+    def _validar_pagamento(self, perfil, pagamento):
 
         if pagamento == 'cartao' and not perfil.cartao_cadastrado:
 
+            raise ValueError(
+                'Você precisa cadastrar um cartão antes de pagar com cartão.'
+            )
+        
+    def _obter_strategy(self, tipo_entrega):
+
+        if tipo_entrega == 'expressa':
+            return EntregaExpressa()
+
+        return EntregaNormal()
+    
+    def _atualizar_endereco(self, perfil, request):
+
+        perfil.endereco = request.POST['endereco']
+        perfil.save()
+
+    def post(self, request):
+
+        produtos = Produto.objects.all()
+
+        perfil = self._obter_perfil(request)
+
+        produto = Produto.objects.get(
+            id=request.POST['produto']
+        )
+
+        lanche, adicionais = self._montar_lanche(
+            request,
+            produto
+        )
+
+        pagamento = request.POST['pagamento']
+
+        try:
+
+            self._validar_pagamento(
+                perfil,
+                pagamento
+            )
+
+        except ValueError as erro:
+
             messages.warning(
                 request,
-                'Você precisa cadastrar um cartão antes de pagar com cartão.'
+                str(erro)
             )
 
             return redirect('/conta/')
 
-        strategy = (
-            EntregaExpressa()
-            if tipo_entrega == 'expressa'
-            else EntregaNormal()
-        )
-
-
         subtotal = lanche.preco()
+
+        strategy = self._obter_strategy(
+            request.POST['entrega']
+        )
 
         taxa = strategy.calcular(subtotal)
 
         entrega = {
-            "tipo": tipo_entrega,
+            "tipo": request.POST['entrega'],
             "taxa": taxa,
             "pagamento": pagamento
         }
 
-        perfil.endereco = request.POST['endereco']
-
-        perfil.save()
+        self._atualizar_endereco(
+            perfil,
+            request
+        )
 
         try:
 
@@ -117,19 +149,26 @@ class CriarPedidoView(LoginRequiredMixin, View):
                 )
             )
 
-            return render(request, 'sucesso.html', {
-                'pedido': pedido,
-                'resultado': resultado
-            })
+            return render(
+                request,
+                'sucesso.html',
+                {
+                    'pedido': pedido,
+                    'resultado': resultado
+                }
+            )
 
         except Exception as erro:
 
-            return render(request, 'pedido.html', {
-                'produtos': produtos,
-                'erro': str(erro),
-                'perfil': perfil
-            })
-
+            return render(
+                request,
+                'pedido.html',
+                {
+                    'produtos': produtos,
+                    'erro': str(erro),
+                    'perfil': perfil
+                }
+            )
 
 class HistoricoView(LoginRequiredMixin, View):
 
