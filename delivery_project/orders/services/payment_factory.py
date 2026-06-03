@@ -1,3 +1,17 @@
+class WalletService:
+
+    @staticmethod
+    def debitar(perfil, valor):
+
+        if perfil.saldo < valor:
+            raise Exception(
+                "Saldo insuficiente"
+            )
+
+        perfil.saldo -= valor
+
+        perfil.save()
+
 class PixPayment:
 
     def pagar(self, perfil, valor):
@@ -6,15 +20,10 @@ class PixPayment:
 
         valor_final = valor - desconto
 
-        if perfil.saldo < valor_final:
-
-            raise Exception(
-                "Saldo insuficiente"
-            )
-
-        perfil.saldo -= valor_final
-
-        perfil.save()
+        WalletService.debitar(
+            perfil,
+            valor_final
+        )
 
         return {
             "valor_final": valor_final,
@@ -46,10 +55,19 @@ class CardPayment:
 
 class PaymentFactory:
 
-    @staticmethod
-    def criar_pagamento(tipo):
+    PAYMENTS = {
+        "pix": PixPayment,
+        "cartao": CardPayment
+    }
 
-        if tipo == "pix":
-            return PixPayment()
+    @classmethod
+    def criar_pagamento(cls, tipo):
 
-        return CardPayment()
+        pagamento = cls.PAYMENTS.get(tipo)
+
+        if not pagamento:
+            raise ValueError(
+                "Forma de pagamento inválida"
+            )
+
+        return pagamento()
