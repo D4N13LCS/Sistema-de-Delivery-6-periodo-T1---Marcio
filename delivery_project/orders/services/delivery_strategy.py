@@ -1,7 +1,11 @@
-class DeliveryStrategy:
+from abc import ABC, abstractmethod
 
+
+class DeliveryStrategy(ABC):
+
+    @abstractmethod
     def calcular(self, subtotal):
-        raise NotImplementedError
+        pass
 
 
 class EntregaNormal(DeliveryStrategy):
