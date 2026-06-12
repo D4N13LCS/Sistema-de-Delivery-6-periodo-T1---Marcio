@@ -3,11 +3,11 @@ services:
   db:
     image: postgres:16
     container_name: delivery-db
-
+    restart: unless-stopped
     environment:
-      POSTGRES_DB: ${DB_NAME}
-      POSTGRES_USER: ${DB_USER}
-      POSTGRES_PASSWORD: ${DB_PASSWORD}
+        POSTGRES_DB: delivery_db
+        POSTGRES_USER: postgres
+        POSTGRES_PASSWORD: postgres
 
     ports:
       - "5432:5432"
@@ -22,9 +22,10 @@ services:
       retries: 10
 
   delivery-app:
-    build: .
+    build:
+      context: ./delivery_project
     container_name: delivery-app
-
+    restart: unless-stopped
     command: >
       sh -c "
       python manage.py migrate &&
@@ -44,6 +45,53 @@ services:
     depends_on:
       db:
         condition: service_healthy
+  
+  product-db:
+    image: postgres:16
+    container_name: product-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: product_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+
+    ports:
+      - "5433:5432"
+
+    volumes:
+      - product_data:/var/lib/postgresql/data
+
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    
+  product-service:
+    build:
+      context: ./product_service
+
+    container_name: product-service
+    restart: unless-stopped
+    command: >
+      sh -c "
+      python manage.py migrate &&
+      python manage.py runserver 0.0.0.0:8001
+      "
+
+    volumes:
+      - ./product_service:/app
+
+    ports:
+      - "8001:8001"
+
+    env_file:
+      - ./product_service/.env
+
+    depends_on:
+      product-db:
+        condition: service_healthy
 
 volumes:
   postgres_data:
+  product_data:
