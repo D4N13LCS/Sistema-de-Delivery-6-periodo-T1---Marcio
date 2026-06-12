@@ -1,15 +1,19 @@
-from django.views.generic import ListView
-from products.models import Produto
+from django.views.generic import TemplateView
+
+from products.gateways.product_gateway import ProductGateway
 
 
-class HomeView(ListView):
+class HomeView(TemplateView):
 
-    model = Produto
+    template_name = "home.html"
 
-    template_name = 'home.html'
+    def get_context_data(self, **kwargs):
 
-    context_object_name = 'produtos'
+        context = super().get_context_data(**kwargs)
 
-    paginate_by = 6
+        produtos = ProductGateway.listar()
 
-    ordering = ['nome']
+        context["produtos"] = produtos[:6]
+
+        return context
+    

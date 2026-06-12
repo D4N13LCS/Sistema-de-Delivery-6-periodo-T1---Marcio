@@ -9,6 +9,9 @@ from products.models import Produto
 from orders.services.decorators import *
 from orders.services.delivery_strategy import *
 from orders.services.order_facade import OrderFacade
+from products.gateways.product_gateway import ProductGateway
+
+
 
 # Create your views here.
 class CriarPedidoView(LoginRequiredMixin, View):
@@ -17,7 +20,7 @@ class CriarPedidoView(LoginRequiredMixin, View):
 
     def get(self, request):
 
-        produtos = Produto.objects.all()
+        produtos = ProductGateway.listar()
 
         perfil, created = Perfil.objects.get_or_create(
             usuario=request.user,
@@ -87,7 +90,7 @@ class CriarPedidoView(LoginRequiredMixin, View):
 
     def post(self, request):
 
-        produtos = Produto.objects.all()
+        produtos = ProductGateway.listar()
 
         perfil = self._obter_perfil(request)
 
