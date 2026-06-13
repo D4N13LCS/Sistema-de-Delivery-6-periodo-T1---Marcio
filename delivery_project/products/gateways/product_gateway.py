@@ -18,6 +18,16 @@ class ProductGateway:
 
             return response.json()
 
-        except requests.exceptions.RequestException as e:
-            logger.error(f"Erro ao acessar Product Service: {e}")
+        except requests.exceptions.RequestException as excecao:
+            logger.error(f"Erro ao acessar Product Service: {excecao}")
             return []
+        
+    @classmethod
+    def buscar_por_id(cls, produto_id):
+        produtos = cls.listar()
+
+        for produto in produtos:
+            if produto["id"] == int(produto_id):
+                return produto
+
+        return None

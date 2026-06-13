@@ -10,10 +10,15 @@ class Pedido(models.Model):
         on_delete=models.CASCADE
     )
 
-    produto = models.ForeignKey(
-        Produto,
-        on_delete=models.CASCADE
+    produto_id = models.IntegerField(null=True)
+
+    produto_nome = models.CharField(
+        max_length=100,
+        null=True,
+        blank=True
     )
+
+    produto_preco = models.FloatField(null=True)
 
     adicionais = models.TextField()
 

@@ -1,15 +1,26 @@
 from django.shortcuts import render, redirect
 from django.views import View
 from django.contrib.auth.mixins import LoginRequiredMixin
-
 from django.contrib import messages
 from accounts.models import  Perfil
+from products.services.product_service import ProductService
 from orders.models import  Pedido
-from products.models import Produto
-from orders.services.decorators import *
-from orders.services.delivery_strategy import *
+from orders.services.order_service import OrderService
+from orders.services.decorators import (
+    Lanche,
+    ExtraQueijo,
+    Bacon,
+    Catupiry,
+)
+
+from orders.services.delivery_strategy import (
+    EntregaNormal,
+    EntregaExpressa,
+)
+
 from orders.services.order_facade import OrderFacade
 from products.gateways.product_gateway import ProductGateway
+
 
 
 
@@ -20,7 +31,7 @@ class CriarPedidoView(LoginRequiredMixin, View):
 
     def get(self, request):
 
-        produtos = ProductGateway.listar()
+        produtos = ProductService.listar()
 
         perfil, created = Perfil.objects.get_or_create(
             usuario=request.user,
@@ -48,8 +59,8 @@ class CriarPedidoView(LoginRequiredMixin, View):
     def _montar_lanche(self, request, produto):
 
         lanche = Lanche(
-            produto.nome,
-            produto.preco
+            produto["nome"],
+            produto["preco"]
         )
 
         adicionais = []
@@ -70,19 +81,17 @@ class CriarPedidoView(LoginRequiredMixin, View):
 
     def _validar_pagamento(self, perfil, pagamento):
 
-        if pagamento == 'cartao' and not perfil.cartao_cadastrado:
-
-            raise ValueError(
-                'Você precisa cadastrar um cartão antes de pagar com cartão.'
-            )
+        if pagamento == "cartao" and not perfil.cartao_cadastrado:
+            raise ValueError("Você precisa cadastrar um cartão antes de pagar com cartão.")
         
     def _obter_strategy(self, tipo_entrega):
 
-        if tipo_entrega == 'expressa':
-            return EntregaExpressa()
-
-        return EntregaNormal()
-    
+        return (
+            EntregaExpressa()
+            if tipo_entrega == "expressa"
+            else EntregaNormal()
+        )
+            
     def _atualizar_endereco(self, perfil, request):
 
         perfil.endereco = request.POST['endereco']
@@ -90,88 +99,35 @@ class CriarPedidoView(LoginRequiredMixin, View):
 
     def post(self, request):
 
-        produtos = ProductGateway.listar()
+        produtos = ProductService.listar()
 
         perfil = self._obter_perfil(request)
 
-        produto = Produto.objects.get(
-            id=request.POST['produto']
+        produto = ProductService.buscar_por_id(
+            request.POST["produto"]
         )
 
-        lanche, adicionais = self._montar_lanche(
+        if produto is None:
+            messages.error(
+                request,
+                "Produto não encontrado."
+            )
+            return redirect("/")
+
+        pedido, resultado = OrderService.criar_pedido(
+            perfil=perfil,
+            produto=produto,
+            request=request,
+        )
+
+        return render(
             request,
-            produto
+            'sucesso.html',
+            {
+                'pedido': pedido,
+                'resultado': resultado
+            }
         )
-
-        pagamento = request.POST['pagamento']
-
-        try:
-
-            self._validar_pagamento(
-                perfil,
-                pagamento
-            )
-
-        except ValueError as erro:
-
-            messages.warning(
-                request,
-                str(erro)
-            )
-
-            return redirect('/conta/')
-
-        subtotal = lanche.preco()
-
-        strategy = self._obter_strategy(
-            request.POST['entrega']
-        )
-
-        taxa = strategy.calcular(subtotal)
-
-        entrega = {
-            "tipo": request.POST['entrega'],
-            "taxa": taxa,
-            "pagamento": pagamento
-        }
-
-        self._atualizar_endereco(
-            perfil,
-            request
-        )
-
-        try:
-
-            pedido, resultado = (
-                OrderFacade.finalizar_pedido(
-                    perfil,
-                    produto,
-                    ", ".join(adicionais),
-                    entrega,
-                    subtotal
-                )
-            )
-
-            return render(
-                request,
-                'sucesso.html',
-                {
-                    'pedido': pedido,
-                    'resultado': resultado
-                }
-            )
-
-        except Exception as erro:
-
-            return render(
-                request,
-                'pedido.html',
-                {
-                    'produtos': produtos,
-                    'erro': str(erro),
-                    'perfil': perfil
-                }
-            )
 
 class HistoricoView(LoginRequiredMixin, View):
 
