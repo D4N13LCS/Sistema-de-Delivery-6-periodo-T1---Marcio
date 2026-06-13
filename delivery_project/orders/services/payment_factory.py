@@ -4,9 +4,7 @@ class WalletService:
     def debitar(perfil, valor):
 
         if perfil.saldo < valor:
-            raise Exception(
-                "Saldo insuficiente"
-            )
+            raise ValueError("Saldo insuficiente")
 
         perfil.saldo -= valor
 
@@ -14,9 +12,11 @@ class WalletService:
 
 class PixPayment:
 
+    DESCONTO_PIX = 0.10
+
     def pagar(self, perfil, valor):
 
-        desconto = valor * 0.10
+        desconto = valor * self.DESCONTO_PIX
 
         valor_final = valor - desconto
 
@@ -35,16 +35,7 @@ class PixPayment:
 class CardPayment:
 
     def pagar(self, perfil, valor):
-
-        if perfil.saldo < valor:
-
-            raise Exception(
-                "Saldo insuficiente"
-            )
-
-        perfil.saldo -= valor
-
-        perfil.save()
+        WalletService.debitar(perfil, valor)
 
         return {
             "valor_final": valor,

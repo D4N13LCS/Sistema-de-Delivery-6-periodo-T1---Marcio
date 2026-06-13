@@ -5,23 +5,23 @@ class ItemPedido(ABC):
 
     @abstractmethod
     def descricao(self):
-        pass
+        raise NotImplementedError
 
     @abstractmethod
     def preco(self):
-        pass
+        raise NotImplementedError
 
 class Lanche(ItemPedido):
 
     def __init__(self, nome, preco):
         self.nome = nome
-        self.valor = preco
+        self.preco_base = preco
 
     def descricao(self):
         return self.nome
 
     def preco(self):
-        return self.valor
+        return self.preco_base
     
 class AdicionalDecorator(ItemPedido):
 
