@@ -4,10 +4,12 @@ from orders.services.decorators import (
     Bacon,
     Catupiry,
 )
+
 from orders.services.delivery_strategy import (
     EntregaNormal,
     EntregaExpressa,
 )
+
 from orders.services.order_facade import (
     OrderFacade,
     DeliveryData,
@@ -17,44 +19,60 @@ from orders.services.order_facade import (
 class OrderService:
 
     @staticmethod
-    def criar_pedido(
-        perfil,
-        produto,
-        request
-    ):
+    def _montar_lanche(produto, adicionais_selecionados):
         lanche = Lanche(
             produto["nome"],
-            produto["preco"]
+            produto["preco"],
         )
 
         adicionais = []
 
-        if "queijo" in request.POST:
+        if "queijo" in adicionais_selecionados:
             lanche = ExtraQueijo(lanche)
             adicionais.append("Queijo")
 
-        if "bacon" in request.POST:
+        if "bacon" in adicionais_selecionados:
             lanche = Bacon(lanche)
             adicionais.append("Bacon")
 
-        if "catupiry" in request.POST:
+        if "catupiry" in adicionais_selecionados:
             lanche = Catupiry(lanche)
             adicionais.append("Catupiry")
 
+        return lanche, adicionais
+
+    @staticmethod
+    def _obter_strategy(tipo_entrega):
+        if tipo_entrega == "expressa":
+            return EntregaExpressa()
+
+        return EntregaNormal()
+
+    @staticmethod
+    def criar_pedido(
+        perfil,
+        produto,
+        tipo_entrega,
+        tipo_pagamento,
+        adicionais_selecionados,
+    ):
+        lanche, adicionais = OrderService._montar_lanche(
+            produto,
+            adicionais_selecionados,
+        )
+
         subtotal = lanche.preco()
 
-        strategy = (
-            EntregaExpressa()
-            if request.POST["entrega"] == "expressa"
-            else EntregaNormal()
+        strategy = OrderService._obter_strategy(
+            tipo_entrega
         )
 
         taxa = strategy.calcular(subtotal)
 
         entrega = DeliveryData(
-            tipo=request.POST["entrega"],
+            tipo=tipo_entrega,
             taxa=taxa,
-            pagamento=request.POST["pagamento"],
+            pagamento=tipo_pagamento,
         )
 
         return OrderFacade.finalizar_pedido(

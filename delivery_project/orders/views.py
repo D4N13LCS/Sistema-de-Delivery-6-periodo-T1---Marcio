@@ -6,22 +6,6 @@ from accounts.models import  Perfil
 from products.services.product_service import ProductService
 from orders.models import  Pedido
 from orders.services.order_service import OrderService
-from orders.services.decorators import (
-    Lanche,
-    ExtraQueijo,
-    Bacon,
-    Catupiry,
-)
-
-from orders.services.delivery_strategy import (
-    EntregaNormal,
-    EntregaExpressa,
-)
-
-from orders.services.order_facade import OrderFacade
-from products.gateways.product_gateway import ProductGateway
-
-
 
 
 # Create your views here.
@@ -55,51 +39,8 @@ class CriarPedidoView(LoginRequiredMixin, View):
         )
 
         return perfil
-    
-    def _montar_lanche(self, request, produto):
-
-        lanche = Lanche(
-            produto["nome"],
-            produto["preco"]
-        )
-
-        adicionais = []
-
-        if 'queijo' in request.POST:
-            lanche = ExtraQueijo(lanche)
-            adicionais.append('Queijo')
-
-        if 'bacon' in request.POST:
-            lanche = Bacon(lanche)
-            adicionais.append('Bacon')
-
-        if 'catupiry' in request.POST:
-            lanche = Catupiry(lanche)
-            adicionais.append('Catupiry')
-
-        return lanche, adicionais
-
-    def _validar_pagamento(self, perfil, pagamento):
-
-        if pagamento == "cartao" and not perfil.cartao_cadastrado:
-            raise ValueError("Você precisa cadastrar um cartão antes de pagar com cartão.")
-        
-    def _obter_strategy(self, tipo_entrega):
-
-        return (
-            EntregaExpressa()
-            if tipo_entrega == "expressa"
-            else EntregaNormal()
-        )
-            
-    def _atualizar_endereco(self, perfil, request):
-
-        perfil.endereco = request.POST['endereco']
-        perfil.save()
 
     def post(self, request):
-
-        produtos = ProductService.listar()
 
         perfil = self._obter_perfil(request)
 
@@ -113,21 +54,40 @@ class CriarPedidoView(LoginRequiredMixin, View):
                 "Produto não encontrado."
             )
             return redirect("/")
+        
+        try:
+            tipo_entrega = request.POST["entrega"]
+            tipo_pagamento = request.POST["pagamento"]
 
-        pedido, resultado = OrderService.criar_pedido(
-            perfil=perfil,
-            produto=produto,
-            request=request,
-        )
-
-        return render(
-            request,
-            'sucesso.html',
-            {
-                'pedido': pedido,
-                'resultado': resultado
+            adicionais_selecionados = {
+                nome
+                for nome in ("queijo", "bacon", "catupiry")
+                if nome in request.POST
             }
-        )
+
+            perfil.endereco = request.POST["endereco"]
+            perfil.save()
+
+            pedido, resultado = OrderService.criar_pedido(
+                perfil=perfil,
+                produto=produto,
+                tipo_entrega=tipo_entrega,
+                tipo_pagamento=tipo_pagamento,
+                adicionais_selecionados=adicionais_selecionados,
+            )
+
+            return render(
+                request,
+                'sucesso.html',
+                {
+                    'pedido': pedido,
+                    'resultado': resultado
+                }
+            )
+
+        except ValueError as erro:
+            messages.error(request, str(erro))
+            return redirect("/pedido/")
 
 class HistoricoView(LoginRequiredMixin, View):
 
