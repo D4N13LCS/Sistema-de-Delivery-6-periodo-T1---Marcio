@@ -9,7 +9,7 @@ os.environ.setdefault(
 django.setup()
 
 from accounts.models import Perfil
-from products.models import Produto
+# from products.models import Produto
 from django.contrib.auth.models import User
 
 def run():
@@ -84,16 +84,16 @@ def run():
 
     ]
 
-    for produto in produtos:
+    # for produto in produtos:
 
-        Produto.objects.update_or_create(
-            nome=produto["nome"],
-            defaults={
-                "preco": produto["preco"],
-                "descricao": produto["descricao"],
-                "imagem": produto["imagem"]
-            }
-        )
+    #     Produto.objects.update_or_create(
+    #         nome=produto["nome"],
+    #         defaults={
+    #             "preco": produto["preco"],
+    #             "descricao": produto["descricao"],
+    #             "imagem": produto["imagem"]
+    #         }
+    #     )
 
     for cliente in clientes:
 
