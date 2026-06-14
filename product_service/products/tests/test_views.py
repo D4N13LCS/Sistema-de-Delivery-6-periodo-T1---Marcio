@@ -2,23 +2,28 @@ import pytest
 
 from products.models import Produto
 
+@pytest.mark.django_db
+def test_listagem_sem_produtos(client):
+    response = client.get("/api/products/")
+
+    assert response.status_code == 200
+    assert response.json() == []
 
 @pytest.mark.django_db
-def test_home_paginada(client):
+def test_api_lista_produtos(client):
 
-    for i in range(15):
+    Produto.objects.create(
+        nome="X-Burger",
+        preco=20,
+        descricao="Teste",
+        imagem="https://teste.com"
+    )
 
-        Produto.objects.create(
-            nome=f"Produto {i}",
-            preco=10,
-            descricao="Teste",
-            imagem="https://teste.com"
-        )
-
-    response = client.get("/")
+    response = client.get("/api/products/")
 
     assert response.status_code == 200
 
-    assert len(
-        response.context["produtos"]
-    ) <= 6
+    data = response.json()
+
+    assert len(data) == 1
+    assert data[0]["nome"] == "X-Burger"

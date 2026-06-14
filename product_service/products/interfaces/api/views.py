@@ -21,7 +21,9 @@ def list_products(request):
         {
             "id": p.id,
             "nome": p.nome,
-            "preco": float(p.preco)
+            "preco": float(p.preco),
+            "descricao": p.descricao,
+            "imagem": p.imagem,
         }
         for p in produtos
     ]
