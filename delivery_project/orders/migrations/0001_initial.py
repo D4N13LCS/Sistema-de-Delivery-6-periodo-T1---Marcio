@@ -10,7 +10,6 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        ('products', '0001_initial'),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
@@ -27,7 +26,9 @@ class Migration(migrations.Migration):
                 ('taxa_entrega', models.FloatField()),
                 ('valor_total', models.FloatField()),
                 ('criado_em', models.DateTimeField(auto_now_add=True)),
-                ('produto', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='products.produto')),
+                ('produto_id', models.IntegerField(null=True)),
+                ('produto_nome', models.CharField(max_length=100, null=True, blank=True)),
+                ('produto_preco', models.FloatField(null=True)),
                 ('usuario', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL)),
             ],
         ),
