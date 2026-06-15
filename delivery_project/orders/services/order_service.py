@@ -11,10 +11,12 @@ from orders.services.delivery_strategy import (
 )
 
 from orders.services.order_facade import (
-    OrderFacade,
-    DeliveryData,
+    OrderFacade
 )
 
+from .dtos import DeliveryData
+
+from orders.gateways.order_gateway import OrderGateway
 
 class OrderService:
 
@@ -75,10 +77,20 @@ class OrderService:
             pagamento=tipo_pagamento,
         )
 
-        return OrderFacade.finalizar_pedido(
+        pedido, resultado = OrderFacade.finalizar_pedido(
             perfil=perfil,
             produto=produto,
             adicionais=", ".join(adicionais),
             entrega=entrega,
             subtotal=subtotal,
         )
+
+        pedido, resultado = OrderFacade.finalizar_pedido(
+            perfil=perfil,
+            produto=produto,
+            adicionais=", ".join(adicionais),
+            entrega=entrega,
+            subtotal=subtotal,
+        )
+
+        return pedido, resultado

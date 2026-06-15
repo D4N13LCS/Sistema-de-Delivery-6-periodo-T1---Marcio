@@ -4,7 +4,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib import messages
 from accounts.models import  Perfil
 from products.services.product_service import ProductService
-from orders.models import  Pedido
+from orders.gateways.order_gateway import OrderGateway
 from orders.services.order_service import OrderService
 
 
@@ -95,10 +95,10 @@ class HistoricoView(LoginRequiredMixin, View):
 
     def get(self, request):
 
-        pedidos = Pedido.objects.filter(
-            usuario=request.user
-        ).order_by('-criado_em')
+        pedidos = OrderGateway.listar()
 
-        return render(request, 'historico.html', {
-            'pedidos': pedidos
-        })
+        return render(request, 'historico.html', 
+                {
+                    'pedidos': pedidos
+                }
+        )

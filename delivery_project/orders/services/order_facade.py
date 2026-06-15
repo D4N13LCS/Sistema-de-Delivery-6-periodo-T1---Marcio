@@ -1,6 +1,6 @@
-from orders.models import Pedido
+from orders.gateways.order_gateway import OrderGateway
 from orders.services.payment_factory import PaymentFactory
-from orders.services.dtos import DeliveryData
+
 
 class OrderFacade:
 
@@ -10,7 +10,7 @@ class OrderFacade:
         produto,
         adicionais,
         entrega,
-        subtotal
+        subtotal,
     ):
 
         pagamento = PaymentFactory.criar_pagamento(
@@ -19,30 +19,34 @@ class OrderFacade:
 
         pagamento_resultado = pagamento.pagar(
             perfil,
-            subtotal + entrega.taxa
+            subtotal + entrega.taxa,
         )
 
-        pedido = Pedido.objects.create(
+        pedido = {
+            "cliente": {
+                "nome": perfil.usuario.username,
+            },
+            "produto_nome": produto["nome"],
+            "adicionais": adicionais,
+            "entrega": entrega.tipo,
+            "subtotal": subtotal,
+            "taxa_entrega": entrega.taxa,
+            "desconto": pagamento_resultado["desconto"],
+            "valor_total": pagamento_resultado["valor_final"],
+        }
 
-            usuario=perfil.usuario,
-
-            produto_id=produto["id"],
-            produto_nome=produto["nome"],
-            produto_preco=produto["preco"],
-
-            adicionais=adicionais,
-
-            entrega=entrega.tipo,
-
-            pagamento=entrega.pagamento,
-
-            subtotal=subtotal,
-
-            desconto=pagamento_resultado["desconto"],
-
-            taxa_entrega=entrega.taxa,
-
-            valor_total=pagamento_resultado["valor_final"]
-        )
+        OrderGateway.criar({
+            "usuario_id": perfil.usuario.id,
+            "produto_id": produto["id"],
+            "produto_nome": produto["nome"],
+            "produto_preco": produto["preco"],
+            "adicionais": adicionais,
+            "entrega": entrega.tipo,
+            "pagamento": entrega.pagamento,
+            "subtotal": subtotal,
+            "desconto": pagamento_resultado["desconto"],
+            "taxa_entrega": entrega.taxa,
+            "valor_total": pagamento_resultado["valor_final"],
+        })
 
         return pedido, pagamento_resultado
