@@ -1,11 +1,12 @@
 import logging
 import requests
+from delivery_project.settings import PRODUCT_SERVICE_URL
 
 logger = logging.getLogger(__name__)
 
 class ProductGateway:
-    BASE_URL = "http://product-service:8001/api/products/"
-
+    # BASE_URL = "http://product-service:8001/api/products/"
+    BASE_URL = f"{PRODUCT_SERVICE_URL}/api/products/"
     @classmethod
     def listar(cls):
         try:

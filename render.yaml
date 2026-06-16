@@ -1,0 +1,20 @@
+services:
+  - type: web
+    name: delivery-project
+    runtime: docker
+    rootDir: delivery_project
+
+  - type: web
+    name: product-service
+    runtime: docker
+    rootDir: product_service
+
+  - type: web
+    name: order-service
+    runtime: docker
+    rootDir: order_service
+
+  - type: web
+    name: account-service
+    runtime: docker
+    rootDir: account_service

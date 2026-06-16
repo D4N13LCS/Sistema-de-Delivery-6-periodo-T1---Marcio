@@ -21,16 +21,17 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-xs=$^1tx$3m5j)=-ne_0wc69x&t60$0+zn0qbnjhufm9fr4_9*'
+SECRET_KEY = os.getenv("SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.getenv("DEBUG", "False") == "True"
 
 ALLOWED_HOSTS = [
    "localhost",
     "127.0.0.1",
     "host.docker.internal",
     "product-service",
+    ".onrender.com"
 ]
 
 
@@ -138,6 +139,8 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 
+STATIC_ROOT = BASE_DIR / "staticfiles"
+
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'delivery/static')
 ]
@@ -145,3 +148,15 @@ STATICFILES_DIRS = [
 MESSAGE_TAGS = {
     messages.ERROR: 'danger',
 }
+
+PRODUCT_SERVICE_URL = os.getenv(
+    "PRODUCT_SERVICE_URL"
+)
+
+ORDER_SERVICE_URL = os.getenv(
+    "ORDER_SERVICE_URL"
+)
+
+ACCOUNT_SERVICE_URL = os.getenv(
+    "ACCOUNT_SERVICE_URL"
+)

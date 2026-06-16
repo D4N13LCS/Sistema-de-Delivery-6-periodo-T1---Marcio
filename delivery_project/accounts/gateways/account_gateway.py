@@ -1,10 +1,10 @@
 import requests
-
+from delivery_project.settings import ACCOUNT_SERVICE_URL
 
 class AccountGateway:
 
-    BASE_URL = "http://account-service:8003/api/accounts"
-
+    # BASE_URL = "http://account-service:8003/api/accounts"
+    BASE_URL = f"{ACCOUNT_SERVICE_URL}/api/accounts"
     @staticmethod
     def obter(usuario_id):
 
