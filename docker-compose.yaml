@@ -138,8 +138,57 @@ services:
     depends_on:
       order-db:
         condition: service_healthy
+  
+  account-db:
+    image: postgres:16
+    container_name: account-db
+    restart: unless-stopped
+
+    environment:
+      POSTGRES_DB: account_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+
+    ports:
+      - "5435:5432"
+
+    volumes:
+      - account_data:/var/lib/postgresql/data
+
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+  
+  account-service:
+    build:
+      context: ./account_service
+
+    container_name: account-service
+    restart: unless-stopped
+
+    command: >
+      sh -c "
+      python manage.py migrate &&
+      python manage.py runserver 0.0.0.0:8003
+      "
+
+    volumes:
+      - ./account_service:/app
+
+    ports:
+      - "8003:8003"
+
+    env_file:
+      - ./account_service/.env
+
+    depends_on:
+      account-db:
+        condition: service_healthy
 
 volumes:
   postgres_data:
   product_data:
   order_data:
+  account_data:
