@@ -1,4 +1,4 @@
-from accounts.models import Perfil
+from accounts.gateways.account_gateway import AccountGateway
 from django.shortcuts import render, redirect
 from django.views import View
 from django.contrib.auth.models import User
@@ -42,10 +42,17 @@ class RegisterView(View):
             password=password
         )
 
-        Perfil.objects.create(
-            usuario=user,
-            saldo=200
-        )
+        resultado = AccountGateway.criar(user.id)
+
+        if resultado is None:
+            user.delete()  # evita usuário órfão
+
+            messages.error(
+                request,
+                "Não foi possível criar seu perfil no momento. Tente novamente."
+            )
+
+            return redirect("/register/")
 
         messages.success(
             request,
@@ -109,66 +116,39 @@ class ContaView(LoginRequiredMixin, View):
 
     def get(self, request):
 
-        perfil, created = Perfil.objects.get_or_create(
-            usuario=request.user,
-            defaults={
-                'saldo': 200
-            }
-        )
+        perfil = AccountGateway.obter(request.user.id)
+
+        if perfil is None:
+            messages.error(
+                request,
+                "O serviço de contas está indisponível no momento."
+            )
+            return redirect("/")
 
         return render(request, 'conta.html', {
             'perfil': perfil
         })
 
-    def _atualizar_endereco(self, perfil, request):
-
-        perfil.endereco = request.POST['endereco']
-
-    def _atualizar_cartao(self, perfil, request):
-
-        perfil.numero_cartao = request.POST[
-            'numero_cartao'
-        ]
-
-        perfil.nome_cartao = request.POST[
-            'nome_cartao'
-        ]
-
-        perfil.validade_cartao = request.POST[
-            'validade_cartao'
-        ]
-
-    def _atualizar_status_cartao(self, perfil):
-
-        perfil.cartao_cadastrado = bool(
-            perfil.numero_cartao
-        )
-
     def post(self, request):
 
-        perfil = Perfil.objects.get(
-            usuario=request.user
+        resultado = AccountGateway.atualizar(
+            usuario_id=request.user.id,
+            endereco=request.POST["endereco"],
+            numero_cartao=request.POST["numero_cartao"],
+            nome_cartao=request.POST["nome_cartao"],
+            validade_cartao=request.POST["validade_cartao"],
         )
 
-        self._atualizar_endereco(
-            perfil,
-            request
-        )
-
-        self._atualizar_cartao(
-            perfil,
-            request
-        )
-
-        self._atualizar_status_cartao(
-            perfil
-        )
-
-        perfil.save()
+        if resultado is None:
+            messages.error(
+                request,
+                "Não foi possível atualizar suas informações. O serviço de contas está indisponível."
+            )
+            return redirect("/conta/")
 
         messages.success(
             request,
-            'Informações atualizadas!'
+            "Informações atualizadas!"
         )
 
-        return redirect('/conta/')
+        return redirect("/conta/")
