@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect
 from django.views import View
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib import messages
-from accounts.models import  Perfil
+from accounts.gateways.account_gateway import AccountGateway
 from products.services.product_service import ProductService
 from orders.gateways.order_gateway import OrderGateway
 from orders.services.order_service import OrderService
@@ -17,12 +17,14 @@ class CriarPedidoView(LoginRequiredMixin, View):
 
         produtos = ProductService.listar()
 
-        perfil, created = Perfil.objects.get_or_create(
-            usuario=request.user,
-            defaults={
-                'saldo': 200
-            }
-        )
+        perfil = AccountGateway.obter(request.user.id)
+
+        if perfil is None:
+            messages.error(
+                request,
+                "O serviço de contas está temporariamente indisponível."
+            )
+            return redirect("/")
 
         return render(request, 'pedido.html', {
             'produtos': produtos,
@@ -31,18 +33,11 @@ class CriarPedidoView(LoginRequiredMixin, View):
 
     def _obter_perfil(self, request):
 
-        perfil, _ = Perfil.objects.get_or_create(
-            usuario=request.user,
-            defaults={
-                'saldo': 200
-            }
+        return AccountGateway.obter(
+            request.user.id
         )
 
-        return perfil
-
     def post(self, request):
-
-        perfil = self._obter_perfil(request)
 
         produto = ProductService.buscar_por_id(
             request.POST["produto"]
@@ -65,11 +60,14 @@ class CriarPedidoView(LoginRequiredMixin, View):
                 if nome in request.POST
             }
 
-            perfil.endereco = request.POST["endereco"]
-            perfil.save()
+            AccountGateway.atualizar(
+                usuario_id=request.user.id,
+                endereco=request.POST["endereco"],
+            )
 
             pedido, resultado = OrderService.criar_pedido(
-                perfil=perfil,
+                usuario_id=request.user.id,
+                username=request.user.username,
                 produto=produto,
                 tipo_entrega=tipo_entrega,
                 tipo_pagamento=tipo_pagamento,
@@ -91,14 +89,24 @@ class CriarPedidoView(LoginRequiredMixin, View):
 
 class HistoricoView(LoginRequiredMixin, View):
 
-    login_url = '/login/'
+    login_url = "/login/"
 
     def get(self, request):
 
         pedidos = OrderGateway.listar()
 
-        return render(request, 'historico.html', 
-                {
-                    'pedidos': pedidos
-                }
+        if pedidos is None:
+            messages.error(
+                request,
+                "O serviço de pedidos está temporariamente indisponível."
+            )
+
+            pedidos = []
+
+        return render(
+            request,
+            "historico.html",
+            {
+                "pedidos": pedidos,
+            }
         )

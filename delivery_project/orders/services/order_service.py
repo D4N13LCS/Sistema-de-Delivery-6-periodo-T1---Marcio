@@ -52,7 +52,8 @@ class OrderService:
 
     @staticmethod
     def criar_pedido(
-        perfil,
+        usuario_id,
+        username,
         produto,
         tipo_entrega,
         tipo_pagamento,
@@ -78,15 +79,8 @@ class OrderService:
         )
 
         pedido, resultado = OrderFacade.finalizar_pedido(
-            perfil=perfil,
-            produto=produto,
-            adicionais=", ".join(adicionais),
-            entrega=entrega,
-            subtotal=subtotal,
-        )
-
-        pedido, resultado = OrderFacade.finalizar_pedido(
-            perfil=perfil,
+            usuario_id=usuario_id,
+            username=username,
             produto=produto,
             adicionais=", ".join(adicionais),
             entrega=entrega,

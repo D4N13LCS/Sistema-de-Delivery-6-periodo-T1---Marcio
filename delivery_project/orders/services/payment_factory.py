@@ -1,28 +1,49 @@
+from accounts.gateways.account_gateway import AccountGateway
+
 class WalletService:
 
     @staticmethod
-    def debitar(perfil, valor):
+    def debitar(usuario_id, valor):
 
-        if perfil.saldo < valor:
-            raise ValueError("Saldo insuficiente")
+        resultado = AccountGateway.debitar(
+            usuario_id,
+            valor,
+        )
 
-        perfil.saldo -= valor
+        if resultado is None:
+            raise ValueError(
+                "Serviço de contas indisponível."
+            )
 
-        perfil.save()
+        return resultado
+
+    @staticmethod
+    def creditar(usuario_id, valor):
+
+        resultado = AccountGateway.creditar(
+            usuario_id,
+            valor,
+        )
+
+        if resultado is None:
+            raise ValueError(
+                "Serviço de contas indisponível."
+            )
+
+        return resultado
 
 class PixPayment:
 
     DESCONTO_PIX = 0.10
 
-    def pagar(self, perfil, valor):
+    def pagar(self, usuario_id, valor):
 
         desconto = valor * self.DESCONTO_PIX
-
         valor_final = valor - desconto
 
         WalletService.debitar(
-            perfil,
-            valor_final
+            usuario_id,
+            valor_final,
         )
 
         return {
@@ -34,8 +55,12 @@ class PixPayment:
 
 class CardPayment:
 
-    def pagar(self, perfil, valor):
-        WalletService.debitar(perfil, valor)
+    def pagar(self, usuario_id, valor):
+
+        WalletService.debitar(
+            usuario_id,
+            valor,
+        )
 
         return {
             "valor_final": valor,
