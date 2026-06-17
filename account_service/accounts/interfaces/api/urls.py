@@ -19,19 +19,19 @@ urlpatterns = [
     ),
 
     path(
-        "profile/<int:usuario_id>/",
+        "profile/<int:user_id>/",
         get_profile,
         name="get_profile",
     ),
 
     path(
-        "profile/<int:usuario_id>/update/",
+        "profile/<int:user_id>/update/",
         update_profile,
         name="update_profile",
     ),
 
     path(
-        "profile/<int:usuario_id>/delete/",
+        "profile/<int:user_id>/delete/",
         delete_profile,
         name="delete_profile",
     ),

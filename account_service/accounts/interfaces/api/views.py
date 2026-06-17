@@ -5,151 +5,136 @@ from django.views.decorators.csrf import csrf_exempt
 
 from accounts.application.use_cases.create_profile import CreateProfileUseCase
 from accounts.application.use_cases.get_profile import GetProfileUseCase
-from accounts.application.use_cases.update_address import UpdateAddressUseCase
+from accounts.application.use_cases.update_profile import UpdateProfileUseCase
 from accounts.application.use_cases.credit_balance import CreditBalanceUseCase
 from accounts.application.use_cases.debit_balance import DebitBalanceUseCase
+from accounts.application.use_cases.delete_profile import DeleteProfileUseCase
 
-from accounts.models import Perfil
 
 @csrf_exempt
 def create_profile(request):
 
     if request.method != "POST":
         return JsonResponse(
-            {"erro": "Método não permitido"},
+            {"error": "Method not allowed"},
             status=405,
         )
 
     data = json.loads(request.body)
 
-    perfil = CreateProfileUseCase().execute(data)
+    profile, _ = CreateProfileUseCase().execute(
+        user_id=data["user_id"],
+        balance=data.get("balance", 200),
+        address=data.get("address", ""),
+    )
 
     return JsonResponse(
         {
-            "usuario_id": perfil.usuario_id,
-            "saldo": perfil.saldo,
-            "endereco": perfil.endereco,
+            "user_id": profile.user_id,
+            "balance": profile.balance,
+            "address": profile.address,
         },
         status=201,
     )
 
 
-def get_profile(request, usuario_id):
+def get_profile(request, user_id):
 
     if request.method != "GET":
         return JsonResponse(
-            {"erro": "Método não permitido"},
+            {"error": "Method not allowed"},
             status=405,
         )
 
     try:
-        perfil = GetProfileUseCase().execute(usuario_id)
+
+        profile = GetProfileUseCase().execute(user_id)
 
         return JsonResponse(
             {
-                "usuario_id": perfil.usuario_id,
-                "saldo": perfil.saldo,
-                "endereco": perfil.endereco,
-                "cartao_cadastrado": perfil.cartao_cadastrado,
-                "numero_cartao": perfil.numero_cartao,
-                "nome_cartao": perfil.nome_cartao,
-                "validade_cartao": perfil.validade_cartao,
+                "user_id": profile.user_id,
+                "balance": profile.balance,
+                "address": profile.address,
+                "card_registered": profile.card_registered,
+                "card_number": profile.card_number,
+                "card_name": profile.card_name,
+                "card_expiration": profile.card_expiration,
             }
         )
 
-    except Perfil.DoesNotExist:
+    except Exception:
 
         return JsonResponse(
-            {"erro": "Perfil não encontrado"},
+            {"error": "Profile not found"},
             status=404,
         )
-    
+
+
 @csrf_exempt
-def update_profile(request, usuario_id):
+def update_profile(request, user_id):
 
     if request.method != "PUT":
         return JsonResponse(
-            {"erro": "Método não permitido"},
+            {"error": "Method not allowed"},
             status=405,
         )
 
     try:
 
-        perfil = Perfil.objects.get(
-            usuario_id=usuario_id
+        data = json.loads(request.body)
+
+        profile = UpdateProfileUseCase().execute(
+            user_id=user_id,
+            address=data.get("address"),
+            card_number=data.get("card_number"),
+            card_name=data.get("card_name"),
+            card_expiration=data.get("card_expiration"),
         )
 
-    except Perfil.DoesNotExist:
+        return JsonResponse(
+            {
+                "message": "Profile updated successfully",
+                "user_id": profile.user_id,
+                "address": profile.address,
+            }
+        )
+
+    except Exception:
 
         return JsonResponse(
-            {"erro": "Perfil não encontrado"},
+            {"error": "Profile not found"},
             status=404,
         )
 
-    data = json.loads(request.body)
-
-    perfil.endereco = data.get(
-        "endereco",
-        perfil.endereco,
-    )
-
-    perfil.saldo = data.get(
-        "saldo",
-        perfil.saldo,
-    )
-
-    perfil.numero_cartao = data.get(
-        "numero_cartao",
-        perfil.numero_cartao,
-    )
-
-    perfil.nome_cartao = data.get(
-        "nome_cartao",
-        perfil.nome_cartao,
-    )
-
-    perfil.validade_cartao = data.get(
-        "validade_cartao",
-        perfil.validade_cartao,
-    )
-
-    perfil.cartao_cadastrado = bool(
-        perfil.numero_cartao
-    )
-
-    perfil.save()
-
-    return JsonResponse(
-        {"mensagem": "Perfil atualizado com sucesso"}
-    )
 
 @csrf_exempt
-def delete_profile(request, usuario_id):
+def delete_profile(request, user_id):
 
     if request.method != "DELETE":
         return JsonResponse(
-            {"erro": "Método não permitido"},
+            {"error": "Method not allowed"},
             status=405,
         )
 
     try:
 
-        perfil = Perfil.objects.get(
-            usuario_id=usuario_id
-        )
-
-    except Perfil.DoesNotExist:
+        DeleteProfileUseCase().execute(user_id)
 
         return JsonResponse(
-            {"erro": "Perfil não encontrado"},
+            {
+                "message": "Profile deleted successfully",
+            }
+        )
+
+    except Exception:
+
+        return JsonResponse(
+            {
+                "error": "Profile not found",
+            },
             status=404,
         )
 
-    perfil.delete()
-
-    return JsonResponse(
-        {"mensagem": "Perfil removido com sucesso"}
-    )
 
 @csrf_exempt
 def credit_balance(request):
@@ -162,15 +147,17 @@ def credit_balance(request):
 
     data = json.loads(request.body)
 
-    perfil = CreditBalanceUseCase().execute(
-        usuario_id=data["usuario_id"],
-        valor=data["valor"],
+    profile = CreditBalanceUseCase().execute(
+        user_id=data["user_id"],
+        value=data["value"],
     )
 
-    return JsonResponse({
-        "status": "success",
-        "saldo": perfil.saldo,
-    })
+    return JsonResponse(
+        {
+            "status": "success",
+            "balance": profile.balance,
+        }
+    )
 
 
 @csrf_exempt
@@ -185,40 +172,22 @@ def debit_balance(request):
     data = json.loads(request.body)
 
     try:
-        perfil = DebitBalanceUseCase().execute(
-            usuario_id=data["usuario_id"],
-            valor=data["valor"],
+
+        profile = DebitBalanceUseCase().execute(
+            user_id=data["user_id"],
+            value=data["value"],
         )
 
-        return JsonResponse({
-            "status": "success",
-            "saldo": perfil.saldo,
-        })
-
-    except ValueError as e:
         return JsonResponse(
-            {"error": str(e)},
+            {
+                "status": "success",
+                "balance": profile.balance,
+            }
+        )
+
+    except ValueError as exc:
+
+        return JsonResponse(
+            {"error": str(exc)},
             status=400,
         )
-
-
-@csrf_exempt
-def update_address(request):
-
-    if request.method != "POST":
-        return JsonResponse(
-            {"error": "Method not allowed"},
-            status=405,
-        )
-
-    data = json.loads(request.body)
-
-    perfil = UpdateAddressUseCase().execute(
-        usuario_id=data["usuario_id"],
-        endereco=data["endereco"],
-    )
-
-    return JsonResponse({
-        "status": "success",
-        "endereco": perfil.endereco,
-    })
