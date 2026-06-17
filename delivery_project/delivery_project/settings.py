@@ -73,7 +73,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
-                'accounts.context_processors.perfil_context',
+                'accounts.context_processors.profile_context',
             ],
         },
     },
@@ -100,9 +100,9 @@ DATABASES = {
         "PASSWORD": os.getenv("DB_PASSWORD"),
         "HOST": os.getenv("DB_HOST"),
         "PORT": os.getenv("DB_PORT"),
-        "OPTIONS": {
-            "sslmode": "require",
-        },
+        # "OPTIONS": {
+        #     "sslmode": "require",
+        # },
     }
 }
 
@@ -160,6 +160,4 @@ ORDER_SERVICE_URL = os.getenv(
     "ORDER_SERVICE_URL"
 )
 
-ACCOUNT_SERVICE_URL = os.getenv(
-    "ACCOUNT_SERVICE_URL"
-)
+ACCOUNT_SERVICE_URL = "http://account-service:8003"

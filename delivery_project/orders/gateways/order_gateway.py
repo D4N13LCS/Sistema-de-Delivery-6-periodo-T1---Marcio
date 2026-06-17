@@ -3,8 +3,8 @@ from delivery_project.settings import ORDER_SERVICE_URL
 
 class OrderGateway:
 
-    # BASE_URL = "http://order-service:8002/api/orders"
-    BASE_URL = f"{ORDER_SERVICE_URL}/api/orders"
+    BASE_URL = "http://order-service:8002/api/orders"
+    # BASE_URL = f"{ORDER_SERVICE_URL}/api/orders"
     @staticmethod
     def listar():
         try:

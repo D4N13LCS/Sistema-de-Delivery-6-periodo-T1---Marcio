@@ -17,7 +17,7 @@ class CriarPedidoView(LoginRequiredMixin, View):
 
         produtos = ProductService.listar()
 
-        perfil = AccountGateway.obter(request.user.id)
+        perfil = AccountGateway.get_profile(request.user.id)
 
         if perfil is None:
             messages.error(
@@ -33,7 +33,7 @@ class CriarPedidoView(LoginRequiredMixin, View):
 
     def _obter_perfil(self, request):
 
-        return AccountGateway.obter(
+        return AccountGateway.get_profile(
             request.user.id
         )
 
@@ -60,9 +60,9 @@ class CriarPedidoView(LoginRequiredMixin, View):
                 if nome in request.POST
             }
 
-            AccountGateway.atualizar(
-                usuario_id=request.user.id,
-                endereco=request.POST["endereco"],
+            AccountGateway.update_profile(
+                user_id=request.user.id,
+                address=request.POST["address"],
             )
 
             pedido, resultado = OrderService.criar_pedido(

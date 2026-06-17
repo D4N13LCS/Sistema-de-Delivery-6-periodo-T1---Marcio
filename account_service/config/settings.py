@@ -30,6 +30,7 @@ ALLOWED_HOSTS = [
     "127.0.0.1",
     "account-service",
     ".onrender.com",
+    "testserver",
 ]
 
 
@@ -94,9 +95,9 @@ DATABASES = {
         "PASSWORD": os.getenv("DB_PASSWORD"),
         "HOST": os.getenv("DB_HOST"),
         "PORT": os.getenv("DB_PORT"),
-        "OPTIONS": {
-            "sslmode": "require",
-        },
+        # "OPTIONS": {
+        #     "sslmode": "require",
+        # },
     }
 }
 
