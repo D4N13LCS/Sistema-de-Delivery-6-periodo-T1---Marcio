@@ -2,15 +2,14 @@ import requests
 from delivery_project.settings import ACCOUNT_SERVICE_URL
 
 class AccountGateway:
-
-    # BASE_URL = "http://account-service:8003/api/accounts"
     BASE_URL = f"{ACCOUNT_SERVICE_URL}/api/accounts"
+
     @staticmethod
-    def obter(usuario_id):
+    def get_profile(user_id):
 
         try:
             response = requests.get(
-                f"{AccountGateway.BASE_URL}/profile/{usuario_id}/",
+                f"{AccountGateway.BASE_URL}/profile/{user_id}/",
                 timeout=5,
             )
 
@@ -22,15 +21,15 @@ class AccountGateway:
             return None
 
     @staticmethod
-    def criar(usuario_id, saldo=200, endereco=""):
+    def create_profile(user_id, balance=200, address=""):
 
         try:
             response = requests.post(
                 f"{AccountGateway.BASE_URL}/profile/create/",
                 json={
-                    "usuario_id": usuario_id,
-                    "saldo": saldo,
-                    "endereco": endereco,
+                    "user_id": user_id,
+                    "balance": balance,
+                    "address": address,
                 },
                 timeout=5,
             )
@@ -43,21 +42,21 @@ class AccountGateway:
             return None
 
     @staticmethod
-    def atualizar(
-        usuario_id,
-        endereco="",
-        numero_cartao="",
-        nome_cartao="",
-        validade_cartao="",
+    def update_profile(
+        user_id,
+        address="",
+        card_number="",
+        card_name="",
+        card_expiration="",
     ):
         try:
             response = requests.put(
-                f"{AccountGateway.BASE_URL}/profile/{usuario_id}/update/",
+                f"{AccountGateway.BASE_URL}/profile/{user_id}/update/",
                 json={
-                    "endereco": endereco,
-                    "numero_cartao": numero_cartao,
-                    "nome_cartao": nome_cartao,
-                    "validade_cartao": validade_cartao,
+                    "address": address,
+                    "card_number": card_number,
+                    "card_name": card_name,
+                    "card_expiration": card_expiration,
                 },
                 timeout=5,
             )
@@ -69,11 +68,11 @@ class AccountGateway:
             return None
 
     @staticmethod
-    def excluir(usuario_id):
+    def delete_profile(user_id):
 
         try:
             response = requests.delete(
-                f"{AccountGateway.BASE_URL}/profile/{usuario_id}/delete/",
+                f"{AccountGateway.BASE_URL}/profile/{user_id}/delete/",
                 timeout=5,
             )
 
@@ -85,14 +84,14 @@ class AccountGateway:
             return None
 
     @staticmethod
-    def debitar(usuario_id, valor):
+    def debit_balance(user_id, value):
 
         try:
             response = requests.post(
                 f"{AccountGateway.BASE_URL}/balance/debit/",
                 json={
-                    "usuario_id": usuario_id,
-                    "valor": valor,
+                    "user_id": user_id,
+                    "value": value,
                 },
                 timeout=5,
             )
@@ -105,14 +104,14 @@ class AccountGateway:
             return None
 
     @staticmethod
-    def creditar(usuario_id, valor):
+    def credit_balance(user_id, value):
 
         try:
             response = requests.post(
                 f"{AccountGateway.BASE_URL}/balance/credit/",
                 json={
-                    "usuario_id": usuario_id,
-                    "valor": valor,
+                    "user_id": user_id,
+                    "value": value,
                 },
                 timeout=5,
             )

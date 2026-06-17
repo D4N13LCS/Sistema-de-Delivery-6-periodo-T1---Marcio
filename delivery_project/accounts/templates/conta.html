@@ -30,9 +30,9 @@
 
         <input
             type="text"
-            name="endereco"
+            name="address"
             class="form-control mb-3"
-            value="{{ perfil.endereco|default:'' }}">
+            value="{{ profile.address|default:'' }}">
 
         <hr class="my-4">
 
@@ -48,9 +48,9 @@
 
         <input
             type="text"
-            name="numero_cartao"
+            name="card_number"
             class="form-control mb-3"
-            value="{{ perfil.numero_cartao|default:'' }}">
+            value="{{ profile.card_number|default:'' }}">
 
         <label>
             Nome impresso
@@ -58,9 +58,9 @@
 
         <input
             type="text"
-            name="nome_cartao"
+            name="card_name"
             class="form-control mb-3"
-            value="{{ perfil.nome_cartao|default:'' }}">
+            value="{{ profile.card_name|default:'' }}">
 
         <label>
             Validade
@@ -68,10 +68,10 @@
 
         <input
             type="text"
-            name="validade_cartao"
+            name="card_expiration"
             class="form-control mb-4"
             placeholder="12/30"
-            value="{{ perfil.validade_cartao|default:'' }}">
+            value="{{ profile.card_expiration|default:'' }}">
 
         <button class="btn btn-dark">
 

@@ -5,7 +5,7 @@ from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib import messages
-from .services.password_validator import senha_valida
+from .services.password_validator import password_validate
 
 class RegisterView(View):
 
@@ -23,16 +23,16 @@ class RegisterView(View):
 
             messages.error(
                 request,
-                'Este usuário já existe.'
+                'User already registered'
             )
 
             return redirect('/register/')
 
-        if not senha_valida(password):
+        if not password_validate(password):
 
             messages.error(
                 request,
-                'Senha inválida. Verifique os requisitos.'
+                'Invalid Password. Check the password requirements.'
             )
 
             return redirect('/register/')
@@ -42,21 +42,21 @@ class RegisterView(View):
             password=password
         )
 
-        resultado = AccountGateway.criar(user.id)
+        response = AccountGateway.create_profile(user.id)
 
-        if resultado is None:
-            user.delete()  # evita usuário órfão
+        if response is None:
+            user.delete()  
 
             messages.error(
                 request,
-                "Não foi possível criar seu perfil no momento. Tente novamente."
+                "Can't create your profile at the moment. Try later."
             )
 
             return redirect("/register/")
 
         messages.success(
             request,
-            'Conta criada com sucesso!'
+            'Profile successfully registered!'
         )
 
         return redirect('/login/')
@@ -95,7 +95,7 @@ class LoginView(View):
 
         messages.error(
             request,
-            'Usuário ou senha inválidos.'
+            'Either Invalid User or Password.'
         )
 
         return render(request, 'login.html')
@@ -116,39 +116,39 @@ class ContaView(LoginRequiredMixin, View):
 
     def get(self, request):
 
-        perfil = AccountGateway.obter(request.user.id)
+        profile = AccountGateway.get_profile(request.user.id)
 
-        if perfil is None:
+        if profile is None:
             messages.error(
                 request,
-                "O serviço de contas está indisponível no momento."
+                "The account service is not available at the moment. Try later"
             )
             return redirect("/")
 
         return render(request, 'conta.html', {
-            'perfil': perfil
+            'profile': profile
         })
 
     def post(self, request):
 
-        resultado = AccountGateway.atualizar(
-            usuario_id=request.user.id,
-            endereco=request.POST["endereco"],
-            numero_cartao=request.POST["numero_cartao"],
-            nome_cartao=request.POST["nome_cartao"],
-            validade_cartao=request.POST["validade_cartao"],
+        response = AccountGateway.update_profile(
+            user_id=request.user.id,
+            address=request.POST["address"],
+            card_number=request.POST["card_number"],
+            card_name=request.POST["card_name"],
+            card_expiration=request.POST["card_expiration"],
         )
 
-        if resultado is None:
+        if response is None:
             messages.error(
                 request,
-                "Não foi possível atualizar suas informações. O serviço de contas está indisponível."
+                "Your data could not be updated. Account service is off"
             )
             return redirect("/conta/")
 
         messages.success(
             request,
-            "Informações atualizadas!"
+            "Data successfully updated!"
         )
 
         return redirect("/conta/")

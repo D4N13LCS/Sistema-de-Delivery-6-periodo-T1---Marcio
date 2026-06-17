@@ -1,17 +1,17 @@
 from accounts.gateways.account_gateway import AccountGateway
 
 
-def perfil_context(request):
+def profile_context(request):
     if request.user.is_authenticated:
-        perfil = AccountGateway.obter(request.user.id)
+        profile = AccountGateway.get_profile(request.user.id)
 
-        if perfil is None:
-            perfil = {}
+        if profile is None:
+            profile = {}
 
         return {
-            "perfil": perfil
+            "profile": profile
         }
 
     return {
-        "perfil": {}
+        "profile": {}
     }

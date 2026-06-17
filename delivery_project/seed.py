@@ -14,60 +14,60 @@ from accounts.gateways.account_gateway import AccountGateway
 
 def run():
 
-    clientes = [
-        {"nome": "Carlos", "saldo": 150},
-        {"nome": "Marina", "saldo": 80},
-        {"nome": "Fernanda", "saldo": 250},
-        {"nome": "Lucas", "saldo": 40},
+    clients = [
+        {"name": "Carlos", "balance": 150},
+        {"name": "Marina", "balance": 80},
+        {"name": "Fernanda", "balance": 250},
+        {"name": "Lucas", "balance": 40},
     ]
 
-    for cliente in clientes:
+    for client in clients:
 
-        usuario, created = User.objects.get_or_create(
-            username=cliente["nome"]
+        user, created = User.objects.get_or_create(
+            username=client["name"]
         )
 
         if created:
-            usuario.set_password("123")
-            usuario.save()
+            user.set_password("123")
+            user.save()
 
-        perfil = AccountGateway.obter(usuario.id)
+        profile = AccountGateway.get_profile(user.id)
 
-        if perfil is None:
+        if profile is None:
 
-            AccountGateway.criar(
-                usuario_id=usuario.id,
-                saldo=cliente["saldo"],
-                endereco="Endereço padrão",
+            AccountGateway.create_profile(
+                user_id=user.id,
+                balance=client["balance"],
+                address="default address",
             )
 
         else:
 
-            # atualiza apenas o endereço
-            AccountGateway.atualizar(
-                usuario_id=usuario.id,
-                endereco="Endereço padrão",
+            # update address only
+            AccountGateway.update_profile(
+                user_id=user.id,
+                address="default address",
             )
 
             # atualiza o saldo usando o endpoint próprio
-            saldo_atual = perfil["saldo"]
-            saldo_desejado = cliente["saldo"]
+            current_balance = profile["balance"]
+            new_balance_value = client["balance"]
 
-            diferenca = saldo_desejado - saldo_atual
+            difference = new_balance_value - current_balance
 
-            if diferenca > 0:
-                AccountGateway.creditar(
-                    usuario.id,
-                    diferenca,
+            if difference > 0:
+                AccountGateway.credit_balance(
+                    user.id,
+                    difference,
                 )
 
-            elif diferenca < 0:
-                AccountGateway.debitar(
-                    usuario.id,
-                    abs(diferenca),
+            elif difference < 0:
+                AccountGateway.debit_balance(
+                    user.id,
+                    abs(difference),
                 )
 
-    print("Seed executada com sucesso!")
+    print("Seed successfully executed!")
 
 
 if __name__ == "__main__":

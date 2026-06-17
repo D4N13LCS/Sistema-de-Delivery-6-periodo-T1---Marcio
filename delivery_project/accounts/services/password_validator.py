@@ -6,7 +6,7 @@ LOWERCASE_PATTERN = r"[a-z]"
 SPECIAL_CHARACTER_PATTERN = r"[\W_]"
 
 
-def senha_valida(password):
+def password_validate(password):
 
     if len(password) < MIN_PASSWORD_LENGTH:
         return False
