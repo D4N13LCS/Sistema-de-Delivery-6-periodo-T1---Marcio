@@ -1,11 +1,12 @@
-from accounts.models import Perfil
+from accounts.infrastructure.repositories.profile_repository import (
+    ProfileRepository,
+)
 
 
 class CreditBalanceUseCase:
 
-    def execute(self, usuario_id, valor):
-        perfil = Perfil.objects.get(usuario_id=usuario_id)
-        perfil.saldo += valor
-        perfil.save()
+    def execute(self, user_id, value):
+        profile = ProfileRepository.get_by_user_id(user_id=user_id)
+        profile.balance += value
 
-        return perfil
+        return ProfileRepository.save(profile)

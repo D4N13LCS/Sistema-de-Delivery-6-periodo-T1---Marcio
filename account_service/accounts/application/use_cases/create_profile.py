@@ -1,20 +1,24 @@
-from accounts.models import Perfil
+from accounts.infrastructure.repositories.profile_repository import (
+    ProfileRepository,
+)
 
 
 class CreateProfileUseCase:
 
     @staticmethod
     def execute(
-        usuario_id,
-        saldo=200,
-        endereco="",
+        user_id,
+        balance=200,
+        address="",
     ):
-        perfil, created = Perfil.objects.get_or_create(
-            usuario_id=usuario_id,
-            defaults={
-                "saldo": saldo,
-                "endereco": endereco,
-            },
+        profile, created = ProfileRepository.get_or_create(
+            user_id=user_id,
+            balance=balance,
+            address=address,
         )
 
-        return perfil, created
+        print(created)
+        print(profile.balance)
+        print(profile.address)
+
+        return profile, created

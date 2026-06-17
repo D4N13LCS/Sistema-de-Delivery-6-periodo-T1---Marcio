@@ -1,15 +1,16 @@
-from accounts.models import Perfil
-
+from accounts.infrastructure.repositories.profile_repository import (
+    ProfileRepository,
+)
 
 class DebitBalanceUseCase:
 
-    def execute(self, usuario_id, valor):
-        perfil = Perfil.objects.get(usuario_id=usuario_id)
+    def execute(self, user_id, value):
 
-        if perfil.saldo < valor:
-            raise ValueError("Saldo insuficiente")
+        profile = ProfileRepository.get_by_user_id(user_id)
 
-        perfil.saldo -= valor
-        perfil.save()
+        if profile.balance < value:
+            raise ValueError("Insufficient balance")
 
-        return perfil
+        profile.balance -= value
+
+        return ProfileRepository.save(profile)
