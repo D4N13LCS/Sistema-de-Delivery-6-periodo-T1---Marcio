@@ -1,5 +1,9 @@
-from django.test import Client
+import os
+import django
 
+os.environ.setdefault(
+    "DJANGO_SETTINGS_MODULE",
+    "config.settings",   
+)
 
-def before_all(context):
-    context.client = Client()
+django.setup()
